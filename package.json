@@ -1,7 +1,7 @@
 {
   "name": "elect-lab",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "전류와 전압 탐구실 - Vernier Go Direct 센서를 Web Bluetooth로 연결하는 중학교 과학 POE 학습 앱",
   "engines": {
