@@ -6,6 +6,9 @@ Vernier **Go Direct 전류 센서(GDX-CUR)** 와 **전압 센서(GDX-VOLT)** 를
 
 > 이 앱은 교육부나 Vernier 의 공식 인증 앱이 아니다. 저전압 직류 회로 실험만 대상으로 한다.
 
+- 저장소: https://github.com/sirlma111216-boop/lelectro
+- 배포 주소: https://elect-lab.sirlma.workers.dev (Cloudflare Workers Static Assets)
+
 ## 네 가지 탐구
 
 | # | 제목 | 센서 | 교육과정 |

@@ -20,24 +20,18 @@ npm run build
 
 `dist/` 에 `index.html`, `assets/`, `_headers` 가 생긴다. `wrangler.jsonc` 의 `assets.directory` (`./dist`) 와 Vite `build.outDir` 이 같다.
 
-## 2. GitHub 저장소 만들기와 업로드
+## 2. GitHub 저장소
 
-저장소 주소가 아직 정해지지 않았으므로 아래 절차를 직접 수행한다. (이 프로젝트는 임의 계정에 저장소를 만들지 않았다.)
-
-1. GitHub 에서 새 저장소를 만든다 (비공개/공개는 학교 정책에 따라). README·.gitignore 는 추가하지 않는다 (이미 있음).
-2. 로컬에서:
+- 저장소: https://github.com/sirlma111216-boop/lelectro (원격 이름 `origin`, 운영 브랜치 `main`)
+- `main` 에 푸시하면 GitHub Actions 의 `CI` 워크플로가 자동으로 돈다 (Actions 탭에서 확인).
 
 ```bash
-git remote add origin https://github.com/<계정>/<저장소>.git
+git push origin main
 ```
-
-```bash
-git push -u origin main
-```
-
-3. 푸시되면 GitHub Actions 의 `CI` 워크플로가 자동으로 돈다. Actions 탭에서 통과를 확인한다.
 
 ## 3. Cloudflare Workers 와 GitHub 연동 (배포)
+
+현재 상태: Worker `elect-lab` 은 2026-10-17 에 `npx wrangler deploy` 로 처음 만들어졌고 https://elect-lab.sirlma.workers.dev 에서 서비스 중이다 (계정 ID 3c166b189a0b269ef920ffe9301ae05d). 이후 자동 배포는 아래 Git 연동으로 한다. 기존 Worker 에 연결하려면 **Workers & Pages → elect-lab → Settings → Builds → Connect** 를 쓴다.
 
 참고: https://developers.cloudflare.com/workers/ci-cd/builds/ , https://developers.cloudflare.com/workers/static-assets/
 
