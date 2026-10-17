@@ -34,7 +34,7 @@ test.describe('연습 모드 POE 흐름', () => {
     await page.getByTestId('go-observe').click();
     await expect(page.getByTestId('current-stage')).toHaveText('관찰 (O)');
     await page.getByTestId('connect-current').click();
-    await expect(page.getByTestId('device-card-current')).toContainText('모의 데이터');
+    await expect(page.getByTestId('live-current')).toContainText('모의 데이터');
 
     await page.getByTestId('measure-start').click();
     await expect(page.getByTestId('live-current')).not.toContainText('측정 대기', { timeout: 5000 });

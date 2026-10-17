@@ -20,7 +20,7 @@ interface SessionStoreState {
   createSession(inquiryId: InquiryId, source: DataSource): InquirySession;
   setActive(id: string | null): void;
   getSession(id: string): InquirySession | undefined;
-  update(id: string, fn: (s: InquirySession) => InquirySession): void;
+  update(id: string, fn: (s: InquirySession) => InquirySession, immediate?: boolean): void;
   setStage(id: string, stage: Stage): { ok: boolean; reason?: string };
   submitPrediction(id: string, entry: PredictionEntry): void;
   addRecord(id: string, record: Omit<ConditionRecord, 'repeat'> & { repeat?: number }): void;
@@ -38,22 +38,49 @@ interface SessionStoreState {
 }
 
 const saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const pendingSessions = new Map<string, InquirySession>();
 
-function scheduleSave(session: InquirySession, set: (p: Partial<SessionStoreState>) => void) {
+async function persistNow(session: InquirySession, set: (p: Partial<SessionStoreState>) => void) {
+  pendingSessions.delete(session.sessionId);
+  try {
+    await storage.saveSession(session);
+    set({ lastSavedAt: Date.now(), storageError: null });
+  } catch (err) {
+    set({ storageError: err instanceof StorageError ? err.message : String(err) });
+  }
+}
+
+/**
+ * 저장 예약. 입력 중인 텍스트는 300ms 묶어서, 기록 추가·예측 제출 같은 중요한 변경은 즉시 저장한다.
+ */
+function scheduleSave(session: InquirySession, set: (p: Partial<SessionStoreState>) => void, immediate = false) {
   const prev = saveTimers.get(session.sessionId);
   if (prev) clearTimeout(prev);
+  saveTimers.delete(session.sessionId);
+  if (immediate) {
+    void persistNow(session, set);
+    return;
+  }
+  pendingSessions.set(session.sessionId, session);
   saveTimers.set(
     session.sessionId,
-    setTimeout(async () => {
+    setTimeout(() => {
       saveTimers.delete(session.sessionId);
-      try {
-        await storage.saveSession(session);
-        set({ lastSavedAt: Date.now(), storageError: null });
-      } catch (err) {
-        set({ storageError: err instanceof StorageError ? err.message : String(err) });
-      }
+      void persistNow(session, set);
     }, 300),
   );
+}
+
+/** 탭이 숨겨지거나 닫힐 때 미뤄 둔 저장을 바로 시도한다 */
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', () => {
+    saveTimers.forEach((t) => clearTimeout(t));
+    saveTimers.clear();
+    pendingSessions.forEach((session) => {
+      void storage.saveSession(session).catch(() => undefined);
+    });
+    pendingSessions.clear();
+  });
 }
 
 export const useSessionStore = create<SessionStoreState>((set, get) => ({
@@ -78,7 +105,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
   createSession(inquiryId, source) {
     const s = logic.createEmptySession(inquiryId, source);
     set((st) => ({ sessions: { ...st.sessions, [s.sessionId]: s }, activeSessionId: s.sessionId }));
-    scheduleSave(s, set);
+    scheduleSave(s, set, true);
     return s;
   },
 
@@ -90,13 +117,13 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
     return get().sessions[id];
   },
 
-  update(id, fn) {
+  update(id, fn, immediate = false) {
     const cur = get().sessions[id];
     if (!cur) return;
     const next = fn(cur);
     if (next === cur) return;
     set((st) => ({ sessions: { ...st.sessions, [id]: next } }));
-    scheduleSave(next, set);
+    scheduleSave(next, set, immediate);
   },
 
   setStage(id, stage) {
@@ -104,16 +131,16 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
     if (!cur) return { ok: false, reason: '세션이 없습니다.' };
     const check = logic.canEnterStage(cur, stage);
     if (!check.ok) return check;
-    get().update(id, (s) => ({ ...s, stage, updatedAt: Date.now() }));
+    get().update(id, (s) => ({ ...s, stage, updatedAt: Date.now() }), true);
     return { ok: true };
   },
 
   submitPrediction(id, entry) {
-    get().update(id, (s) => logic.applyPrediction(s, entry));
+    get().update(id, (s) => logic.applyPrediction(s, entry), true);
   },
 
   addRecord(id, record) {
-    get().update(id, (s) => logic.addRecord(s, record));
+    get().update(id, (s) => logic.addRecord(s, record), true);
   },
 
   updateRecord(id, recordId, patch) {
@@ -121,7 +148,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
   },
 
   removeRecord(id, recordId) {
-    get().update(id, (s) => logic.removeRecord(s, recordId));
+    get().update(id, (s) => logic.removeRecord(s, recordId), true);
   },
 
   setObservationNotes(id, notes) {
@@ -129,7 +156,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
   },
 
   setExplanation(id, explanation) {
-    get().update(id, (s) => logic.setExplanation(s, explanation));
+    get().update(id, (s) => logic.setExplanation(s, explanation), true);
   },
 
   setChecklist(id, key, checked) {
@@ -141,13 +168,14 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
   },
 
   complete(id) {
-    get().update(id, (s) => ({ ...s, completedAt: s.completedAt ?? Date.now(), stage: 'summary', updatedAt: Date.now() }));
+    get().update(id, (s) => ({ ...s, completedAt: s.completedAt ?? Date.now(), stage: 'summary', updatedAt: Date.now() }), true);
   },
 
   async deleteSession(id) {
     const timer = saveTimers.get(id);
     if (timer) clearTimeout(timer);
     saveTimers.delete(id);
+    pendingSessions.delete(id);
     set((st) => {
       const next = { ...st.sessions };
       delete next[id];
@@ -182,6 +210,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
   async clearAll() {
     saveTimers.forEach((t) => clearTimeout(t));
     saveTimers.clear();
+    pendingSessions.clear();
     await storage.clearAll();
     set({ sessions: {}, activeSessionId: null, storageError: null });
   },
