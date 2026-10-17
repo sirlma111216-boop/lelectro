@@ -1,0 +1,60 @@
+/* 디자인 토큰: 색·글꼴·간격·둥글기. 앱 전체의 모양은 이 파일에서 바꾼다. */
+:root {
+  color-scheme: light;
+
+  --font-sans: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'D2Coding', Consolas, 'Courier New', monospace;
+
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-muted: #eef2f6;
+  --border: #d7dde5;
+  --border-strong: #aeb8c4;
+  --text: #1c2430;
+  --text-muted: #5b6673;
+  --text-faint: #8a95a3;
+
+  --primary: #0f766e;
+  --primary-hover: #0b5f59;
+  --primary-soft: #d9f2ef;
+  --focus: #2563eb;
+
+  /* 물리량 색: 전류는 주황, 전압은 파랑 — 그래프·라벨·회로도에서 일관되게 쓴다 */
+  --current: #c2410c;
+  --current-soft: #ffe8d9;
+  --voltage: #1d4ed8;
+  --voltage-soft: #dbe6ff;
+
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+
+  /* 모의 데이터 표시 */
+  --mock: #6d28d9;
+  --mock-soft: #ede9fe;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --text-xs: 0.78rem;
+  --text-sm: 0.9rem;
+  --text-base: 1rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.4rem;
+  --text-2xl: 1.8rem;
+  --text-value: 2.6rem;
+
+  --content-max: 1280px;
+}

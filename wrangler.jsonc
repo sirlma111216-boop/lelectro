@@ -1,0 +1,13 @@
+{
+  // Cloudflare Workers Static Assets 설정 (assets-only Worker, 서버 코드 없음).
+  // 참고: https://developers.cloudflare.com/workers/static-assets/
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "elect-lab",
+  "compatibility_date": "2026-10-16",
+  "assets": {
+    // `vite build` 출력 경로(vite.config.ts의 build.outDir)와 일치해야 한다.
+    "directory": "./dist",
+    // /inquiry/1 같은 SPA 경로를 직접 열거나 새로고침해도 index.html을 200으로 돌려준다.
+    "not_found_handling": "single-page-application"
+  }
+}

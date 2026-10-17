@@ -1,0 +1,7 @@
+# Cloudflare Workers Static Assets 헤더 규칙.
+# 이 파일은 public/ 에 두면 vite build 가 dist/_headers 로 복사한다.
+# Web Bluetooth 는 같은 출처(self)에서 허용되어야 하므로 bluetooth 를 막지 않는다.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: bluetooth=(self), camera=(), microphone=(), geolocation=()
